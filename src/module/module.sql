@@ -24,6 +24,8 @@ EXECUTE PROCEDURE insertUser();
 
 DELETE FROM users WHERE user_id = 2;
 
+--! ----------------------------- BEFORE UPDATE ---------------------------------------------------------
+
 
 CREATE OR REPLACE FUNCTION updateUser()
 RETURNS TRIGGER
@@ -49,3 +51,25 @@ FOR EACH ROW
 EXECUTE PROCEDURE updateUser();
 
 UPDATE users SET user_name = 'Sardor' WHERE user_id = 3;
+
+--! ----------------------------- BEFORE INSERT ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION copyUser()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+  INSERT INTO archive(archived_id, archived_name, archived_age)
+  VALUES(NEW.user_id, NEW.user_name, NEW.user_age);
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER handleCopyUser
+BEFORE INSERT
+ON users
+FOR EACH ROW
+EXECUTE PROCEDURE copyUser();
+
+
+INSERT INTO users(user_name, user_age) VALUES ('Abdumalik', 20);
